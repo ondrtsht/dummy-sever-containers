@@ -58,3 +58,8 @@ Body
 EOF
 #
 ```
+
+```
+# podman exec -it postfix /bin/bash
+# echo "Test mail body" | mail -s "Test Subject" -r sender@mail.test test@mail.test
+```
