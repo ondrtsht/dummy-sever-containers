@@ -5,14 +5,14 @@
 # SSL/TLS support: yes, no, required. <doc/wiki/SSL.txt>
 # disable plain pop3 and imap, allowed are only pop3+TLS, pop3s, imap+TLS and imaps
 # plain imap and pop3 are still allowed for local connections
-ssl = no
+ssl = required
 
 # PEM encoded X.509 SSL/TLS certificate and private key. They're opened before
 # dropping root privileges, so keep the key file unreadable by anyone but
 # root. Included doc/mkcert.sh can be used to easily generate self-signed
 # certificate, just make sure to update the domains in dovecot-openssl.cnf
-#ssl_cert = </etc/pki/dovecot/certs/dovecot.pem
-#ssl_key = </etc/pki/dovecot/private/dovecot.pem
+ssl_cert = </etc/pki/dovecot/certs/dovecot.pem
+ssl_key = </etc/pki/dovecot/private/dovecot.pem
 
 # If key file is password protected, give the password here. Alternatively
 # give it when starting dovecot with -p parameter. Since this file is often
@@ -66,7 +66,7 @@ ssl = no
 #ssl_cipher_list = ALL:!kRSA:!SRP:!kDHd:!DSS:!aNULL:!eNULL:!EXPORT:!DES:!3DES:!MD5:!PSK:!RC4:!ADH:!LOW@STRENGTH
 # To disable non-EC DH, use:
 #ssl_cipher_list = ALL:!DH:!kRSA:!SRP:!kDHd:!DSS:!aNULL:!eNULL:!EXPORT:!DES:!3DES:!MD5:!PSK:!RC4:!ADH:!LOW@STRENGTH
-#ssl_cipher_list = PROFILE=SYSTEM
+ssl_cipher_list = PROFILE=SYSTEM
 
 # Colon separated list of elliptic curves to use. Empty value (the default)
 # means use the defaults from the SSL library. P-521:P-384:P-256 would be an

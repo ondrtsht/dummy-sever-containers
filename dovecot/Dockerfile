@@ -3,7 +3,7 @@
 # podman exec -it rl8 /bin/bash
 FROM rockylinux/rockylinux:8.10
 RUN dnf -y install procps-ng iproute nmap-ncat bind-utils
-RUN dnf -y install dovecot fetchmail
+RUN dnf -y install dovecot fetchmail s-nail
 COPY etc/dovecot /etc/dovecot
 COPY entrypoint.sh /
 RUN chmod 744 /entrypoint.sh

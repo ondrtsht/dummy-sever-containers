@@ -7,7 +7,7 @@
 # matches the local IP (ie. you're connecting from the same computer), the
 # connection is considered secure and plaintext authentication is allowed.
 # See also ssl=required setting.
-disable_plaintext_auth = no
+#disable_plaintext_auth = yes
 
 # Authentication cache size (e.g. 10M). 0 means it's disabled. Note that
 # bsdauth and PAM require cache_key to be set for caching to be used.
@@ -30,7 +30,7 @@ disable_plaintext_auth = no
 
 # Default realm/domain to use if none was specified. This is used for both
 # SASL realms and appending @domain to username in plaintext logins.
-auth_default_realm = mail.test
+#auth_default_realm = 
 
 # List of allowed characters in username. If the user-given username contains
 # a character not listed in here, the login automatically fails. This is just
@@ -115,14 +115,6 @@ auth_mechanisms = plain
 # own them. For single-UID configuration use "static" userdb.
 #
 # <doc/wiki/UserDatabase.txt>
-userdb {
-    driver = static
-    args = uid=vmail gid=vmail home=/var/mail/%d/%n mail=sdbox:~/sdbox
-}
-passdb {
-    driver = static
-    args = password=test
-}
 
 #!include auth-deny.conf.ext
 #!include auth-master.conf.ext
