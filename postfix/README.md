@@ -53,3 +53,30 @@ virtual_mailbox_domains = mail.test, mail.example, example.com, example.net, exa
 @example.net    receiver@mail.test
 @example.org    receiver@mail.test
 ```
+
+## 動作確認用コマンドメモ
+
+### dovecot への連携確認
+
+* 正常系
+
+```
+podman exec -it postfix /bin/bash
+echo "Test mail body" | mail -s "Test Subject" -r sender@mail.test aaa@mail.test
+echo "Test mail body" | mail -s "Test Subject" -r sender@mail.test bbb@mail.example
+echo "Test mail body" | mail -s "Test Subject" -r sender@mail.test ccc@example.com
+echo "Test mail body" | mail -s "Test Subject" -r sender@mail.test ddd@example.net
+echo "Test mail body" | mail -s "Test Subject" -r sender@mail.test eee@example.org
+```
+
+* エラーケース:  `unknown user`
+
+```
+echo "Test mail body" | mail -s "Test Subject" -r sender@mail.test fff@postfix.mail.test
+```
+
+* エラーケース:  `mail for external network is not deliverable`
+
+```
+echo "Test mail body" | mail -s "Test Subject" -r sender@mail.test ggg@subdomain.mail.test
+```

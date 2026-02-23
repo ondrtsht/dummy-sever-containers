@@ -759,6 +759,7 @@ relay_transport = error: mail for external network is not deliverable
 # dovecot への配信設定
 virtual_mailbox_domains = mail.test, mail.example, example.com, example.net, example.org
 virtual_transport = lmtp:inet:dovecot:24
+virtual_alias_maps = hash:/etc/postfix/virtual
 
 # ログの出力先
 maillog_file = /dev/stdout
