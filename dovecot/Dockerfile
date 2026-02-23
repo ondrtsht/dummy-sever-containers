@@ -1,10 +1,14 @@
-# cd ~/container/dovecot && podman rmi -f dovecot && podman build -t dovecot . && podman run -d -p 24:24 -p 110:110 -v ~/container/dovecot/mnt:/mnt --name rl8 rl8 && podman logs -f dovecot
-# podman run -itd --name rl8 rl8
-# podman exec -it rl8 /bin/bash
+# DOVECOT_CONTAINER_HOME=~/git/dummy-sever-containers/dovecot
+# cd ${DOVECOT_CONTAINER_HOME} && podman rmi -f dovecot && podman build -t dovecot .
+# cd ${DOVECOT_CONTAINER_HOME} && podman build -t dovecot .
+# podman rm -f dovecot && podman run -d -p 24:24 -p 110:110 -v ${DOVECOT_CONTAINER_HOME}/mnt:/mnt --name dovecot dovecot && podman logs -f dovecot
+# podman exec -it dovecot /bin/bash
 FROM rockylinux/rockylinux:8.10
 RUN dnf -y install procps-ng iproute nmap-ncat bind-utils
-RUN dnf -y install dovecot fetchmail s-nail
+RUN dnf -y install dovecot fetchmail mailx
 COPY etc/dovecot /etc/dovecot
 COPY entrypoint.sh /
 RUN chmod 744 /entrypoint.sh
 ENTRYPOINT ["/entrypoint.sh"]
+COPY recreate-sdbox-index.sh /
+RUN chmod 755 /recreate-sdbox-index.sh
