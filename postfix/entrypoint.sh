@@ -38,6 +38,9 @@ fi
 source /etc/sysconfig/network
 /usr/libexec/postfix/aliasesdb
 postmap /etc/postfix/virtual
+if [ -n "${VIRTUAL_TRANSPORT}" ]; then
+    /usr/sbin/postconf -e "virtual_transport = ${VIRTUAL_TRANSPORT}"
+fi
 /usr/sbin/postfix start-fg > /dev/stdout 2> /dev/stderr &
 PID=$!
 wait ${PID}
