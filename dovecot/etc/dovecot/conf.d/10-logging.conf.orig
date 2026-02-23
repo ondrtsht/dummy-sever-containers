@@ -4,7 +4,7 @@
 
 # Log file to use for error messages. "syslog" logs to syslog,
 # /dev/stderr logs to stderr.
-log_path = /dev/stderr
+#log_path = syslog
 
 # Log file to use for informational messages. Defaults to log_path.
 #info_log_path = 
@@ -37,7 +37,7 @@ log_path = /dev/stderr
 #log_core_filter = 
 
 # Log unsuccessful authentication attempts and the reasons why they failed.
-auth_verbose = yes
+#auth_verbose = no
 
 # In case of password mismatches, log the attempted password. Valid values are
 # no, plain and sha1. sha1 can be useful for detecting brute force password

@@ -7,6 +7,7 @@ export TZ=JST-9
 # dovecot 用の設定
 groupadd -g 1000 vmail
 useradd -u 1000 -g vmail --home-dir /var/mail --shell /usr/sbin/nologin vmail
+chown -R vmail:vmail /var/mail
 
 # dovecot をフォアグラウンドで起動する
 exec /usr/sbin/dovecot -F
