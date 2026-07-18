@@ -97,6 +97,7 @@ mail_owner = postfix
 #
 #myhostname = host.domain.tld
 #myhostname = virtual.domain.tld
+myhostname = mail.test
 
 # The mydomain parameter specifies the local internet domain name.
 # The default is to use $myhostname minus the first component.
@@ -104,6 +105,7 @@ mail_owner = postfix
 # parameters.
 #
 #mydomain = domain.tld
+mydomain = test
 
 # SENDING MAIL
 # 
@@ -119,7 +121,7 @@ mail_owner = postfix
 # to recipient addresses that have no @domain part.
 #
 #myorigin = $myhostname
-#myorigin = $mydomain
+myorigin = $mydomain
 
 # RECEIVING MAIL
 
@@ -136,7 +138,7 @@ mail_owner = postfix
 #inet_interfaces = all
 #inet_interfaces = $myhostname
 #inet_interfaces = $myhostname, localhost
-inet_interfaces = localhost
+#inet_interfaces = localhost
 
 # Enable IPv4, and IPv6 if supported
 inet_protocols = all
@@ -184,8 +186,8 @@ inet_protocols = all
 #
 # See also below, section "REJECTING MAIL FOR UNKNOWN LOCAL USERS".
 #
-mydestination = $myhostname, localhost.$mydomain, localhost
-#mydestination = $myhostname, localhost.$mydomain, localhost, $mydomain
+#mydestination = $myhostname, localhost.$mydomain, localhost
+mydestination = $myhostname, localhost.$mydomain, localhost, $mydomain
 #mydestination = $myhostname, localhost.$mydomain, localhost, $mydomain,
 #	mail.$mydomain, www.$mydomain, ftp.$mydomain
 
@@ -275,6 +277,8 @@ unknown_local_recipient_reject_code = 550
 #mynetworks_style = class
 #mynetworks_style = subnet
 #mynetworks_style = host
+# podman でネットワークを作ったら、この行を削除
+mynetworks_style = subnet
 
 # Alternatively, you can specify the mynetworks list by hand, in
 # which case Postfix ignores the mynetworks_style setting.
@@ -290,6 +294,10 @@ unknown_local_recipient_reject_code = 550
 #mynetworks = 168.100.3.0/28, 127.0.0.0/8
 #mynetworks = $config_directory/mynetworks
 #mynetworks = hash:/etc/postfix/network_table
+# podman でネットワークを作ったら、この行の「172.20.0.0/16」を置き換えて有効化
+# mynetworks = 127.0.0.0/8, 172.20.0.0/16
+# podman でのネットワーク作成例
+# podman network create --subnet=172.20.0.0/16 test-net
 
 # The relay_domains parameter restricts what destinations this system will
 # relay mail to.  See the smtpd_relay_restrictions and
@@ -747,3 +755,26 @@ smtp_tls_security_level = may
 default_database_type = lmdb
 shlib_directory = /usr/lib64/postfix
 meta_directory = /etc/postfix
+
+# 以下、デフォルトからの追加設定
+
+# デフォルトのトランスポート設定
+# The default mail delivery transport and next-hop destination
+# for the default domain class: recipient domains
+# that do not match $mydestination, $inet_interfaces, $proxy_interfaces,
+# $virtual_alias_domains, $virtual_mailbox_domains, or $relay_domains. 
+# This information will not be used when sender_dependent_default_transport_maps
+# returns a result, and may be overridden with the transport(5) table. 
+# テスト用なので外部に配送させないよう設定する。
+# デフォルトが smtp なのでエラーに変更 (送信元には正常応答して読み捨てる場合は discard)
+default_transport = error: mail for external network is not deliverable
+
+# リレーのトランスポート設定
+# The default mail delivery transport and next-hop destination
+# for the relay domain address class: recipient domains that match $relay_domains. 
+# テスト用なので外部に配送させないよう設定する。
+# デフォルトが relay なのでエラーに変更 (送信元には正常応答して読み捨てる場合は discard)
+relay_transport = error: mail for external network is not deliverable
+
+# ログの出力先
+maillog_file = /dev/stdout

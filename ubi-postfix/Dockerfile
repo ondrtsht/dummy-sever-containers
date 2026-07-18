@@ -15,4 +15,9 @@ RUN microdnf update -y && \
 ENV LANG=ja_JP.UTF-8
 ENV TZ=Asia/Tokyo
 
+COPY --chown=root:root config/current/etc/postfix/ /etc/postfix/
+RUN chmod 755 /etc/postfix && \
+    find /etc/postfix -type f -exec chmod 644 {} \; && \
+    postalias lmdb:/etc/aliases
+
 CMD ["postfix", "start-fg"]
