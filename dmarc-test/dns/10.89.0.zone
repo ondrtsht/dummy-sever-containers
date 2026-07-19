@@ -1,0 +1,14 @@
+$TTL 86400
+@   IN  SOA mail.sender.test. root.sender.test. (
+        2026071901  ; Serial
+        3600        ; Refresh
+        1800        ; Retry
+        604800      ; Expire
+        86400 )     ; Minimum TTL
+
+    IN  NS  mail.sender.test.
+
+; 各コンテナのIPに対するPTR（逆引き）レコードを完全定義
+2   IN  PTR dns-server.test.
+3   IN  PTR mail.sender.test.
+4   IN  PTR mail.receiver.test.
