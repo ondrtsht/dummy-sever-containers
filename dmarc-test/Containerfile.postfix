@@ -1,0 +1,91 @@
+FROM registry.access.redhat.com/ubi10/ubi-minimal:latest
+# RHEL 10互換で最新のRed Hat公式最小ベースイメージ「UBI 10」を採用
+
+# ホスト側であらかじめ取得した実存するEPEL 10の公式リリースRPMファイルを安全にコピー
+COPY epel-release-latest-10.noarch.rpm /tmp/epel-release-latest-10.noarch.rpm
+
+# ビルド段階でEPEL 10とPython、Postfixを一括インストール
+# [変更理由]: 
+# - sed等での置換: UBI環境でリポジトリ変数を固定し、GPGチェックを回避して暫定的なEPEL10パッケージを取得可能にするため
+# - touch /etc/aliases: 後のnewaliases実行時にファイル不在エラーとなるのを防ぐため
+RUN microdnf -y update && \
+    rpm -ivh /tmp/epel-release-latest-10.noarch.rpm && \
+    sed -i 's/\$releasever/10/g' /etc/yum.repos.d/epel*.repo && \
+    sed -i 's/10_major/10/g' /etc/yum.repos.d/epel*.repo && \
+    sed -i 's/gpgcheck=1/gpgcheck=0/g' /etc/yum.repos.d/epel*.repo && \
+    microdnf -y install postfix python3 pypolicyd-spf python3-dns python3-pip rsyslog socat && \
+    touch /etc/aliases && \
+    rm -f /tmp/epel-release-latest-10.noarch.rpm && \
+    microdnf clean all
+
+# Postfix基本構成の最適化（セディット置換）
+# [変更理由]:
+# - inet_interfaces: デフォルトのlocalhost(ループバック)では外部コンテナからの接続を受信できないためallに変更
+# - master.cf(smtp/relay): デフォルトのchroot(y)動作はUBI最小環境内のライブラリ不足で正常動作しないため、chrootなし(n)に固定
+# - mydestination削除: デフォルト値による意図しないローカル配送ドメインの重複競合を防ぐため初期化
+# - maillog_file: コンテナログの標準運用に従い、ログをファイルではなく標準出力(stdout)へ流すため
+RUN sed -i 's/inet_interfaces = localhost/inet_interfaces = all/' /etc/postfix/main.cf && \
+    sed -i -E '/^smtp[[:space:]]+unix.+[[:space:]]smtp$/s/^(([^\t ]+[\t ]+){4})[-y]([[:space:]]+.*)$/\1n\3/' /etc/postfix/master.cf && \
+    sed -i -E '/^relay[[:space:]]+unix.+[[:space:]]smtp$/s/^(([^\t ]+[\t ]+){4})[-y]([[:space:]]+.*)$/\1n\3/' /etc/postfix/master.cf && \
+    sed -i '/^mydestination =/d' /etc/postfix/main.cf && \
+    echo "maillog_file = /dev/stdout" >> /etc/postfix/main.cf
+#    echo 'module(load="omstdout")' >> /etc/rsyslog.conf && \
+#    echo '*.* action(type="omstdout")' >> /etc/rsyslog.conf
+
+# 外部起動スクリプト（run.sh）から渡されるビルド引数
+ARG ROLE
+ARG MY_HOSTNAME=mail.${ROLE}.test
+ARG MY_DOMAIN=${ROLE}.test
+
+# 送信側・受信側共通の識別パラメータを main.cf に安全注入
+# [変更理由]: デフォルトのlocalhost構成から、外部との識別が可能なテスト用独自ドメイン体系へ更新するため
+RUN echo "myhostname = ${MY_HOSTNAME}" >> /etc/postfix/main.cf && \
+    echo "mydomain = ${MY_DOMAIN}" >> /etc/postfix/main.cf && \
+    echo "myorigin = \$mydomain" >> /etc/postfix/main.cf
+
+# 1. 送信側（sender）ロール向けの設定（ROLEがreceiver以外の場合のデフォルトベース）
+# [変更理由]: 送信専用コンテナとして不要な自ドメイン宛てメールのローカル受信を防止し、適切な配送制御を行うため
+RUN echo "mydestination = mail.sender.test, localhost.sender.test, localhost" >> /etc/postfix/main.cf
+
+# 2. 受信側（receiver）ロール専用の設定インジェクション
+# 【エラーの根絶】トラブルの元になる「if分岐」「クォーテーションのネスト」を完全排除。
+# シェルの代わりとして、引数 ${ROLE} に基づいて行単位でヒットするスマートなインジェクション構造を採用
+# [変更理由]:
+# - mydestination: 受信サーバー自身が最終目的地として処理すべきドメイン(receiver.test等)を明示するため
+# - mynetworks: 同一Dockerネットワーク内(10.89.0.0/24等)からのリレー送信を許可するため
+# - local_recipient_maps / luser_relay: 存在しない宛先へのメールを拒否せず、全てrootユーザーへ集約(迷子防止)させるため
+# - smtpd_peername_lookup: DNS逆引きの遅延や、コンテナ環境特有の逆引き失敗による接続拒否を回避するため
+# - check_policy_service / spawn / policyd-spf.conf: 送信ドメイン認証(SPF)によるなりすましメール対策(Fail拒否)を強制適用するため
+RUN test "${ROLE}" != "receiver" || ( \
+      sed -i '/^mydestination =/d' /etc/postfix/main.cf && \
+      echo "mydestination = mail.receiver.test, localhost.receiver.test, localhost, receiver.test" >> /etc/postfix/main.cf && \
+      echo "mynetworks = 127.0.0.0/8, 10.89.0.0/24" >> /etc/postfix/main.cf && \
+      echo "local_recipient_maps =" >> /etc/postfix/main.cf && \
+      echo "luser_relay = root" >> /etc/postfix/main.cf && \
+      echo "smtpd_peername_lookup = yes" >> /etc/postfix/main.cf && \
+      echo "policyd-spf_time_limit = 3600" >> /etc/postfix/main.cf && \
+      echo "smtpd_relay_restrictions =" >> /etc/postfix/main.cf && \
+      # すべてのメールにSPF検証を強制適用する
+      # pypolicyd-spfはPass時にPERMITではなくDUNNOを返すため、
+      # reject_unauth_destinationの前に配置してもオープンリレーになりません。
+      echo "smtpd_recipient_restrictions = check_policy_service unix:private/policyd-spf, reject_unauth_destination, permit_mynetworks" >> /etc/postfix/main.cf && \
+      echo "policyd-spf unix - n n - 0 spawn user=nobody argv=/usr/libexec/postfix/policyd-spf" >> /etc/postfix/master.cf && \
+      mkdir -p /etc/python-policyd-spf && \
+      echo "HELO_reject = Fail" > /etc/python-policyd-spf/policyd-spf.conf && \
+      echo "Mail_From_reject = Fail" >> /etc/python-policyd-spf/policyd-spf.conf && \
+      echo "PermError_reject = False" >> /etc/python-policyd-spf/policyd-spf.conf \
+    )
+
+COPY --chown=root:root config/etc/rsyslog.conf /etc/rsyslog.conf
+RUN chmod 644 /etc/rsyslog.conf
+
+EXPOSE 25
+# ディレクトリ権限を自動修復してからコンテナが永続起動（start-fg）するようにCMDを適用
+# [変更理由]:
+# - newaliases: 初期状態のエイリアスDB構築を自動化するため
+# - set-permissions: UBI等の特定ボリュームマウント時に発生するPostfixのパーミッション警告・拒否エラーを動的に回避するため
+# - start-fg: コンテナがバックグラウンド起動による即時終了を起こさないよう、フォアグラウンドで常駐させるため
+#CMD ["/bin/bash", "-c", "rm -f /dev/log && socat -u UNIX-LISTEN:/dev/log,fork,mode=666 STDOUT & newaliases && (postfix set-permissions 2>/dev/null || true) && exec postfix start-fg"]
+#CMD ["/bin/bash", "-c", "rm -f /dev/log && socat -u UNIX-LISTEN:/dev/log,fork,mode=666 STDOUT | sed -u 's/^<[0-9]\{1,3\}>//' & newaliases && (postfix set-permissions 2>/dev/null || true) && exec postfix start-fg"]
+# bash全体に標準出力を固定した状態で、rsyslogとpostfixを順に起動します
+CMD ["/bin/bash", "-c", "/usr/sbin/rsyslogd -n >&1 & newaliases && (postfix set-permissions 2>/dev/null || true) && exec postfix start-fg"]

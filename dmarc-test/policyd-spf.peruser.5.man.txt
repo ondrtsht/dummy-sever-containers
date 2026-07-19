@@ -1,0 +1,82 @@
+
+policy-spf.peruser(5)                                         File Formats Manual                                        policy-spf.peruser(5)
+
+NAME
+       policyd-spf - policyd-spf python per-user configuration
+
+VERSION
+       3.1.0
+
+USAGE
+       Usage:
+         policyd-spf [/etc/policyd-spf/policyd-spf.conf]
+
+OTHER DOCUMENTATION
+       This  documentation  assumes  you  have  read Postfix's README_FILES/ SMTPD_POLICY_README and are generally familiar with Sender Policy
+       Framework (SPF).  See RFC 7208 for details.
+
+       man 1 policyd-spf provides general operation documentation for this package.
+
+       See man 5 policyd-spf.conf for configuration file information.
+
+SYNOPSIS
+       python-policyd-spf operates with a default installed configuration file and set of default configuration options that are used  if  the
+       configuration  file  cannot  be  found.  These options can be changed by changing the installed configuration files or through giving a
+       path to an alternate configuration file.
+
+       Additionally, different configurations can be provided on a per user basis.  This man page describes setup and user of per  user  (mail
+       recipient)  configurations.   Currently these configurations can only be stored in a text file.  If there is sufficient interest, other
+       data storage methods may be supported in the future.
+
+DESCRIPTION
+       Use of per-user configuration is defined in the application configuration file with the setting "Per_User".  The value of  the  setting
+       gives  the  type  and location of the per-user configuration information.  Currently supported types is text.  User is defined an email
+       address of a recipient of the message.
+
+       Most options available at the application level (See man 5 policyd-spf.conf) can be adjusted on a per-user basis.  Per-user checks  can
+       only  be  done  as  part of smtpd_recipient_restrictions.  Per-user actions are not possible at other stages of the SMTP dialogue.  The
+       user  is  not  yet  known  for  smtpd_client_restrictions,  smtpd_helo_restrictions,  or  smtpd_sender_restrictions.   If  used  during
+       smtpd_data_restrictions  or smtpd_end_of_data_restrictions, the entire message will be available only if the message was only to a sin‐
+       gle recipient.  If per-user configurations are used when recipient information is not available, warnings will be logged and  the  per-
+       user information will be ignored.
+
+       The  following options cannot be modified on a per user basis: Lookup_Time, Header_Type, Hide_Receiver, Authserv_Id, Prospective, debu‐
+       gLevel, and Mock.
+
+       In addition to specifying individual users, regular expression matching is also available, but may have performance implications  since
+       the entire user table has to be traversed for each message recipient.
+
+OPTIONS
+
+Text Per-User Configuration File
+       The  text  file option is useful for testing and when only a small number of users require per-user configurations.  It is specified in
+       the main configuration file:
+
+       "Per_User = text,/etc/pypolicyd-spf/userconf"
+
+       Lines beginning with "#" are treated as comments and ignored.  The location of the file is determined by the system  administrator.  No
+       default file is provided in or installed by the package.
+
+       The configuration of the file is a comma separated combination of user and configuration information, with one line per user's configu‐
+       ration  information  (NOTE:  due to man page formatting requirements, these lines may be wrapped in your pager - in the config file, it
+       must be one line per user):
+
+       postmaster@example.com,Mail_From_reject=No_Check|PermError_reject=False|HELO_reject=SPF_Not_Pass|TestOnly=1|debugLevel=5|skip_ad‐
+       dresses=127.0.0.0/8,::ffff:127.0.0.0//104,::1//128|TempError_Defer=False              strict@example.com,PermError_reject=True|HELO_re‐
+       ject=SPF_Not_Pass|TempError_Defer=True
+
+       It is not necessary to specify all configuration parameters for each user, only those that are different than the overall configuration
+       need to be specified.
+
+       If the specified per user configuration file is missing, an error is logged and the global configuration is used instead.
+
+SEE ALSO
+       man 1 policyd-spf, man 5 policyd-spf.conf, python-spf, <http://www.openspf.org>, RFC 7208
+
+AUTHORS
+       This  version  of  policyd-spf  was  written  by Copyright © 2007-2016, Scott Kitterman <scott@kitterman.com>.  It is derived from Tum‐
+       greyspf, written by Sean Reifschneider, tummy.com, ltd <jafo@tummy.com>.
+
+       This man-page was created by Scott Kitterman <scott@kitterman.com> and is licensed under the same terms as the program.
+
+                                                                                                                         policy-spf.peruser(5)

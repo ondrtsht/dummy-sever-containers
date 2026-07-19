@@ -1,0 +1,12 @@
+$TTL 86400
+@   IN  SOA ns.receiver.test. root.receiver.test. (2026071801 3600 1800 604800 86400)
+
+    IN  NS  ns.receiver.test.
+
+ns  IN  A   10.89.0.2
+
+; receiver.test ドメイン宛てのメールを受け取るサーバー（MXレコード）として受信側コンテナを指定
+@   IN  MX  10 mail.receiver.test.
+
+; 受信メールサーバー（mail.receiver.test）の固定IPアドレス（Aレコード）を定義
+mail IN A   10.89.0.4

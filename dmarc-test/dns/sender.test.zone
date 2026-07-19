@@ -1,0 +1,30 @@
+$TTL 86400 ; キャッシュの有効期限（TTL）を1日（86400秒）に定義
+
+; ゾーンの権威セクション（SOAレコード）の定義。シリアル値や各ホスト名を記述
+@   IN  SOA ns.sender.test. root.sender.test. (2026071801 3600 1800 604800 86400)
+
+; ドメイン（sender.test）の権威ネームサーバー（NSレコード）として自分自身を指定
+    IN  NS  ns.sender.test.
+
+; ネームサーバー（ns.sender.test）の実IPアドレス（Aレコード）を定義
+ns  IN  A   10.89.0.2
+
+; sender.test ドメイン宛てのメールを受け取るサーバーの優先度とホスト名（MXレコード）を定義
+@   IN  MX  10 mail.sender.test.
+
+; 送信側メールサーバー（mail.sender.test）の固定IPアドレス（Aレコード）を定義
+mail IN A   10.89.0.3
+
+; 【SPFレコード定義】
+; v=spf1: SPFのバージョン1であることを明示。
+; ip4:10.89.0.3: このドメインを名乗ってよい正規のメールサーバーのIPアドレス（mail-senderのIP）。
+; -all: 「Hard Fail（完全拒否）」。ここに定義したIP以外からの送信メールはすべて偽装とみなす指示。
+@   IN  TXT "v=spf1 ip4:10.89.0.3 -all"
+
+; 【DMARCレコード定義】
+; ホスト名「_dmarc」に対して登録（RFC 7489準拠）。
+; v=DMARC1: DMARCのバージョン1であることを明示。
+; p=quarantine: ポリシーの指定。「隔離」。SPF認証に失敗した偽装メールを受信側の迷惑メールフォルダ等に隔離する指示。
+; pct=100: このDMARCポリシーを、該当ドメインから届くメールの「100%」に完全適用。
+; rua=mailto:...: 検証結果の統計レポートを受け取る宛先メールアドレス（ローカル環境のため形式上の指定）。
+_dmarc IN TXT "v=DMARC1; p=quarantine; pct=100; rua=mailto:dmarc-reports@sender.test"
