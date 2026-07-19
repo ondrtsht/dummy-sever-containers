@@ -1,0 +1,24 @@
+$TTL 86400
+
+@ IN SOA mail.sender.test. root.sender.test. (
+    2026071901
+    3600
+    1800
+    604800
+    86400
+)
+
+@ IN NS mail.sender.test.
+
+mail        IN A 10.89.0.3
+mail-sender IN A 10.89.0.3
+
+@ IN MX 10 mail.sender.test.
+
+@ IN TXT "v=spf1 ip4:10.89.0.3 -all"
+
+_dmarc IN TXT "v=DMARC1; p=none; pct=100"
+
+default._domainkey.sender.test. IN TXT (
+"v=DKIM1; k=rsa; p=MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAspxSE0WhGVVW8O3cHnyo0y5JeC3v6eSaVsg3lQzxtDEvD8IWQ3xCbxdjWtilx6dSFfnucPOoT6yw3UN9Bn6veRZTCewOudWra3LmjeZvct+aWKOZm9MBXOT9uTBhL1b0wdXUfPSrKsQbQw+IqC3ftvgLK6Z1vZs1DeNprO7S2vv/A1cYcIfsNEAV+iSN7TkMYHd+25Ipsxc7wq8/VpysRuoK9ksxi99XMGCZtOxqKJg8DZfAdsldxJSwXMxPCk74iLJvzq4cxsmSTCafdZR3Rw2YLbK2WtPebG4wN2JYTkPlMRLCviMwLrKnMqfeHvF7acct8C7ewl3SLHgbjQedcQIDAQAB"
+)

@@ -1,0 +1,114 @@
+FROM registry.access.redhat.com/ubi10/ubi-minimal:latest
+
+
+COPY epel-release-latest-10.noarch.rpm /tmp/epel-release-latest-10.noarch.rpm
+
+
+RUN microdnf -y update && \
+    rpm -ivh /tmp/epel-release-latest-10.noarch.rpm && \
+    sed -i 's/\$releasever/10/g' /etc/yum.repos.d/epel*.repo && \
+    sed -i 's/10_major/10/g' /etc/yum.repos.d/epel*.repo && \
+    sed -i 's/gpgcheck=1/gpgcheck=0/g' /etc/yum.repos.d/epel*.repo && \
+    microdnf -y install \
+        postfix \
+        python3 \
+        pypolicyd-spf \
+        python3-dns \
+        python3-pip \
+        socat \
+        opendkim \
+        opendkim-tools \
+        opendmarc \
+        bind-utils \
+        rsyslog && \
+    touch /etc/aliases && \
+    rm -f /tmp/epel-release-latest-10.noarch.rpm && \
+    microdnf clean all
+
+
+
+#
+# postfix base
+#
+
+RUN sed -i 's/^inet_interfaces.*/inet_interfaces = all/' /etc/postfix/main.cf && \
+    sed -i '/^mydestination =/d' /etc/postfix/main.cf && \
+    echo "maillog_file = /dev/stdout" >> /etc/postfix/main.cf
+
+
+
+ARG ROLE
+
+ENV ROLE=${ROLE}
+
+ARG MY_HOSTNAME=mail.${ROLE}.test
+ARG MY_DOMAIN=${ROLE}.test
+
+
+
+RUN echo "myhostname = ${MY_HOSTNAME}" >> /etc/postfix/main.cf && \
+    echo "mydomain = ${MY_DOMAIN}" >> /etc/postfix/main.cf && \
+    echo "myorigin = \$mydomain" >> /etc/postfix/main.cf
+
+
+
+#
+# sender
+#
+
+RUN echo "mydestination = mail.sender.test, localhost.sender.test, localhost" \
+    >> /etc/postfix/main.cf
+
+
+
+#
+# receiver
+#
+
+RUN if [ "${ROLE}" = "receiver" ]; then \
+        sed -i '/^mydestination =/d' /etc/postfix/main.cf && \
+        echo "mydestination = mail.receiver.test, localhost.receiver.test, localhost, receiver.test" >> /etc/postfix/main.cf && \
+        echo "mynetworks = 127.0.0.0/8, 10.89.0.0/24" >> /etc/postfix/main.cf && \
+        echo "local_recipient_maps =" >> /etc/postfix/main.cf && \
+        echo "luser_relay = root" >> /etc/postfix/main.cf && \
+        echo "smtpd_peername_lookup = yes" >> /etc/postfix/main.cf && \
+        echo "policyd-spf_time_limit = 3600" >> /etc/postfix/main.cf && \
+        echo "smtpd_relay_restrictions = permit_mynetworks reject_unauth_destination" >> /etc/postfix/main.cf && \
+        echo "smtpd_recipient_restrictions = check_policy_service unix:private/policyd-spf reject_unauth_destination permit_mynetworks" >> /etc/postfix/main.cf && \
+        echo "policyd-spf unix - n n - 0 spawn user=nobody argv=/usr/libexec/postfix/policyd-spf" >> /etc/postfix/master.cf ; \
+    fi
+
+
+
+#
+# sender milter
+#
+
+RUN if [ "${ROLE}" = "sender" ]; then \
+        echo "smtpd_milters = unix:public/opendkim.sock" >> /etc/postfix/main.cf && \
+        echo "non_smtpd_milters = \$smtpd_milters" >> /etc/postfix/main.cf && \
+        echo "milter_default_action = accept" >> /etc/postfix/main.cf ; \
+    fi
+
+
+
+#
+# receiver milter
+#
+
+RUN if [ "${ROLE}" = "receiver" ]; then \
+        echo "smtpd_milters = unix:public/opendmarc.sock" >> /etc/postfix/main.cf && \
+        echo "milter_default_action = accept" >> /etc/postfix/main.cf ; \
+    fi
+
+
+
+COPY start-mail.sh /usr/local/bin/start-mail.sh
+
+RUN chmod 755 /usr/local/bin/start-mail.sh
+
+
+EXPOSE 25
+
+
+CMD ["/usr/local/bin/start-mail.sh"]
