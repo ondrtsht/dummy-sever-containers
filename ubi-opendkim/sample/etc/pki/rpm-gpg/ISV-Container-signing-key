@@ -1,0 +1,36 @@
+This key is used to sign third-party containers which are certified by Red Hat.
+
+Questions about this key should be sent to security@redhat.com.
+
+pub   rsa4096/55A34A82 2019-08-30
+uid                   Red Hat, Inc. (ISV Container Signing Key) <secalert@redhat.com>
+
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+
+mQINBF1poLQBEACSTZqYWn0MRf1bZUYr3sTYZaOD/7jvsnY/ZJ0onG9ZAikE1bSn
+0xHrdnQgTJ4BhRA/dTQvLz4IZ+D52IyFqpc42LKB7CaOdjvLoyEkazLfAaEAalNV
+VVgKwdNmZ8ZnrurT+ndWeYIlSq5i4udbUrKqIBXt2PAuykR+k9nE4RyiHd2E0QrE
+BL+oGpnTAy8w5bVvfyrvBo1YG7Hqr6+KhO2S+/f6EUZ6xv0+QkBYVrHZ/qZinVdd
+cRB1vNXrsNmoJoJAYxWZIUo13weLHV9f88aqfef2GViWIHQOWYzJjGzyY+PCUXIy
+2uEGBZdNI2bfqva+dG0OPqLxjmjx3893PLNkAsKbDxBti/IqkOa09rvoeMVZmZf1
+Iws+dB8TgJHiqrpE+EGk9cEN79q11eYyrNm12E0jrelT7vNXtPuS9sHDfIuL0+UI
+kvViJ6Q3SVcDZhiyz5IYQLwJKmpcYfDdr7U9WsganLGKwz7db/k+o7XkgiC7Uzu+
+rZ62ghlE3HZwPJJ2tp4oz4Uvxtq/mXP4JmYkuJGPTe4eialMri6isSJhY2ofVhFG
+DAPqh3+a3ncXCFqdXsGndBTXacuoapddvRz7ZdRwxiAun1BRMbuGqhhqEQnqZ8vY
+V+RkxtyvPTH2QG0aBlF0Vz5113v21Aqxgc5jgiCyuGlw6hHCo2TaXNsLOQARAQAB
+tD9SZWQgSGF0LCBJbmMuIChJU1YgQ29udGFpbmVyIFNpZ25pbmcgS2V5KSA8c2Vj
+YWxlcnRAcmVkaGF0LmNvbT6JAjcEEwEIACECGwMGCwkIBwMCBhUIAgkKCwMWAgEC
+HgECF4AFAl1poLUACgkQGsSXE1WjSoK+pA//XI4kc24yt9Z8rXAICQ/OQieWTELp
+bNeufSic+Arl08pzi6EaGAF5nwLI+7kq14zcqsjDaQE5ZOzVh+4FV2UQ7TtgTQ+S
+BE1eAJRigL2cqIRvvhpP4A9X8piJDvfanQfuoKHTZSgaeGmvrb3aGs+shfwNJWiL
+beBpzk0TjSf1mTnnlX5PYiHa2CrwTLbBjb8bgSdkbbaVpWEqq0T2oSuYv2XtCrYn
+vGqYEULAAJ77x54DNnxrzwuVCtozLLv7+cejsFZVe9bwB0sYxmgquv/EBNgxgqVz
+X/BAyWuGRq7qgQrGwhGvXwSFV2DoS0/2sFgwSZPHw1nPcbXRww+FAQJUyOQkNgoo
+PdIdFwpv6BlbxroYZ9IBWNyKUTSS7bOHML8ab5nc6kkQPuWpQfyWrFIBgLdUnBJ3
+B2CfvgLyRH+JB2/Eb8ZWcn4zHDKdDx+KsmJQwx59w7upIcgicvyBJRIz98ZKu4Gq
+D1ezKqETV9XhRJQKdvomm7zZ/3OCjdvvulsZp6E4SPpyxCOTrD9xTNRvGilFrTMj
+C9FFD3kdPEJkeQMCGuMIhFnfNAFouX3Vs+SLEC1ipeM00zmZwSZkObtrtgySP4hR
+XeUXaeGAl7WLUDAeBISHEQMt+kDKW2vnEY1EplRx7zljec81vBLdrwy0s6lGBPsb
+OrG31THZyVXvc7Q=
+=UZBf
+-----END PGP PUBLIC KEY BLOCK-----

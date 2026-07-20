@@ -1,0 +1,54 @@
+FROM registry.access.redhat.com/ubi10/ubi-minimal:latest
+
+# ロケール、タイムゾーン設定
+RUN microdnf update -y && \
+    microdnf install -y glibc-locale-source && \
+    localedef -i ja_JP -f UTF-8 -A /usr/share/locale/locale.alias ja_JP.UTF-8 && \
+    microdnf remove -y glibc-locale-source gzip && \
+    microdnf install -y tzdata && \
+    ln -sf /usr/share/zoneinfo/Asia/Tokyo /etc/localtime && \
+    microdnf install -y postfix && \
+    microdnf clean all
+ENV LANG=ja_JP.UTF-8
+ENV TZ=Asia/Tokyo
+
+# ツールのインストール
+RUN microdnf install -y procps-ng iproute rsyslog tar gzip \
+    && microdnf clean all
+
+# epel-release パッケージのインストール
+COPY extra_rpms /tmp/extra_rpms
+RUN rpm -ivh /tmp/extra_rpms/* && rm -rf /tmp/extra_rpms
+
+# epel からのツールのインストール
+RUN microdnf install -y supervisor \
+    && microdnf clean all
+
+# アプリのインストール
+RUN microdnf install -y \
+    opendkim opendkim-tools openssl  \
+    && microdnf clean all
+
+# 設定ファイル
+RUN tar cvfz /tmp/etc-orig.tar.gz /etc
+COPY config/etc/ /etc/
+
+# sysconfig/opendkim より
+# Set the necessary startup options
+ENV OPTIONS="-x /etc/opendkim.conf"
+# Set the default DKIM selector
+ENV DKIM_SELECTOR=default
+# Set the default DKIM key location
+ENV DKIM_KEYDIR=/etc/opendkim/keys
+
+# DKIM 署名用の鍵ファイルの権限設定、/run ディレクトリの権限付与
+ENV MY_DOMAIN="test"
+# RUN /usr/sbin/opendkim-default-keygen
+RUN chown -R root:opendkim ${DKIM_KEYDIR}/ \
+    && chmod 640 ${DKIM_KEYDIR}/${DKIM_SELECTOR}.private \
+    && chmod 644 ${DKIM_KEYDIR}/${DKIM_SELECTOR}.txt \
+    && chown -R root:opendkim /run/opendkim \
+    && chmod g+rwx /run/opendkim
+
+# supervisord で起動
+CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisord.conf"]

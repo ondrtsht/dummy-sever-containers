@@ -1,2 +1,12 @@
 dovecot/mnt/dovecot/var-dovecot.tar.gz
 postfix/mnt/postfix/var-postfix.tar.gz
+ubi-opendkim/config/etc/opendkim/keys/
+ubi-opendkim/sample/etc/hosts
+ubi-opendkim/sample/etc/ld.so.cache
+ubi-opendkim/sample/etc/resolv.conf
+ubi-opendkim/sample/etc/hostname
+ubi-opendkim/sample/etc/shadow
+ubi-opendkim/sample/etc/shadow-
+ubi-opendkim/sample/etc/gshadow
+ubi-opendkim/sample/etc/gshadow-
+ubi-opendkim/extra_rpms/epel-release-latest-10.noarch.rpm

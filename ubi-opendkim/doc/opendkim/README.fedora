@@ -1,0 +1,102 @@
+#####################################
+#FEDORA-SPECIFIC README FOR OPENDKIM#
+#####################################
+Last updated: Apr 30, 2015 by Steve Jenkins (steve@stevejenkins.com)
+
+Generating keys for OpenDKIM
+============================
+After installing the opendkim package, you MUST generate a pair of keys (public and private) before
+attempting to start the opendkim service.
+
+A valid private key must exist in the location expected by /etc/opendkim.conf before the service will start.
+
+A matching public key must be included in your domain's DNS records before remote systems can validate
+your outgoing mail's DKIM signature.
+
+
+Generating Keys Automatically
+=============================
+To automatically create a pair of default keys for the local domain, do:
+
+% sudo /usr/sbin/opendkim-default-keygen
+
+The default keygen script will attempt to fetch the local domain name, generate a private and public key for
+the domain, then save them in /etc/opendkim/keys as default.private and default.txt with the proper
+ownership and permissions.
+
+NOTE: The default key generation script MUST be run by a privileged user (or root). Otherwise, the resulting
+private key ownership and permissions will not be correct.
+
+
+Generating Keys Manually
+========================
+A privileged user (or root) can manually generate a set of keys by doing the following:
+
+1) Create a directory to store the new keys:
+
+% sudo mkdir /etc/opendkim/keys/example.com
+
+2) Generate keys in that directory for a specific domain name and selector:
+
+% sudo /usr/sbin/opendkim-genkey -D /etc/opendkim/keys/example.com/ -d example.com -s default
+
+3) Set the proper ownership for the directory and private key:
+
+% sudo chown -R root:opendkim /etc/opendkim/keys/example.com
+
+4) Set secure permissions for the private key:
+
+% sudo chmod 640 /etc/opendkim/keys/example.com/default.private
+
+5) Set standard permissions for the public key:
+
+% sudo chmod 644 /etc/opendkim/keys/example.com/default.txt
+
+
+Updating Key Location(s) in Configuration Files
+===============================================
+If you run the opendkim-default-keygen script, the default keys will be saved in /etc/opendkim/keys as
+default.private and default.txt, which is the location expected by the default /etc/opendkim.conf file.
+
+If you manually generate your own keys, you must update the key location and name in /etc/opendkim.conf
+before attempting to start the opendkim service.
+
+Using OpenDKIM with SQL Datasets
+================================
+OpenDKIM on RedHat-based systems relies on OpenDBX for database access. Depending on which database you use,
+you may have to manually install one of the following OpenDBX subpackages (all of which are available via yum):
+
+- opendbx-firebird
+- opendbx-mssql
+- opendbx-mysql
+- opendbx-postgresql
+- opendbx-sqlite 
+- opendbx-sqlite2
+- opendbx-sybase
+
+If you have OpenDKIM configured to use SQL datasets on a systemd-based server, it might also be necessary to start
+the opendkim service after the database servers by referencing your database unit file(s) in the "After" section of
+the OpenDKIM unit file.
+
+For example, if using both MariaDB and PostgreSQL, in /usr/lib/systemd/system/opendkim.service change:
+
+After=network.target nss-lookup.target syslog.target
+
+to:
+
+After=network.target nss-lookup.target syslog.target mariadb.service postgresql.service
+
+
+Additional Configuration Help
+=============================
+For help configuring your MTA (Postfix, Sendmail, etc.) with OpenDKIM, setting up DNS records with your
+public DKIM key, as well as instructions on configuring OpenDKIM to sign outgoing mail for multiple
+domains, follow the how-to at:
+
+http://wp.me/p1iGgP-ou
+
+Official documentation for OpenDKIM is available at http://opendkim.org/
+
+OpenDKIM mailing lists are available at http://lists.opendkim.org/
+
+###
