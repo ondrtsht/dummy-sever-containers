@@ -1,0 +1,42 @@
+{
+  "client_id": "ui",
+  "customizations": {
+    "hostname": "rhel9",
+    "locale": {
+      "keyboard": "jp",
+      "languages": [
+        "ja_JP.UTF-8"
+      ]
+    },
+    "packages": [
+      "glibc-langpack-ja",
+      "langpacks-ja"
+    ],
+    "services": {
+      "masked": [
+        "cloud-init",
+        "cloud-init-local",
+        "cloud-init-config",
+        "cloud-init-main",
+        "getty@tty1"
+      ]
+    },
+    "timezone": {
+      "timezone": "Japan"
+    }
+  },
+  "distribution": "rhel-9",
+  "image_description": "",
+  "image_name": "rhel-9-x86_64",
+  "image_requests": [
+    {
+      "architecture": "x86_64",
+      "image_type": "wsl",
+      "snapshot_date": "2026-08-01T00:00:00.000Z",
+      "upload_request": {
+        "options": {},
+        "type": "aws.s3"
+      }
+    }
+  ]
+}
